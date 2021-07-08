@@ -1,20 +1,26 @@
 from flask import Flask, request
+from sqlite3 import connect
 
 app = Flask(__name__)
-data_log = "data_log.txt"
 
 
 @app.route('/')
 def hello_world():
-    with open(data_log) as fi:
-        return {'data': fi.readlines()}
+    con = connect("cp2s_data.sqlite")
+    cur = con.cursor()
+    content = [x for x in cur.execute("SELECT * FROM data")]
+    con.close()
+    return {'data': content}
 
 
 @app.post('/new_data')
 def new_data():
     if request.json and isinstance(request.json, dict) and 'data' in request.json:  # check that data is not null and that its a dictionary and that it has a key named data
-        with open(data_log, 'at') as fi:
-            fi.write(request.json['data'] + "\n")
+        con = connect("cp2s_data.sqlite")
+        cur = con.cursor()
+        cur.execute("INSERT INTO data VALUES (?, ?)", (request.json['date'], request.json['data']))
+        con.commit()
+        con.close()
     return "thanks"
 
 
