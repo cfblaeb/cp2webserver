@@ -8,21 +8,40 @@
             border: 1px solid black;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-    <table>
-        <tr>
+<div>
+    <canvas id="myChart" width="50" height="10"></canvas></div>
+<table>
+    <tr>
         <th>date</th>
         <th>data</th>
-            </tr>
-        {% for item in data %}
-        <tr>
-            {% for si in item %}
-                <td> {{ si }}</td>
-            {% endfor %}
-        </tr>
+    </tr>
+    {% for item in log %}
+    <tr>
+        {% for si in item %}
+        <td> {{ si }}</td>
         {% endfor %}
+    </tr>
+    {% endfor %}
 
-    </table>
+</table>
+<script>
+    const data = {
+        datasets: [{
+            label: 'My First dataset',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: {{ ll|safe }},
+        }]
+    };
+    const config = {
+        type: 'line',
+        data,
+        options: {}
+    };
+    let myChart = new Chart('myChart', config);
+</script>
 </body>
 </html>
