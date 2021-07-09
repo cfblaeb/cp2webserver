@@ -19,7 +19,7 @@ def parse_temp_level_data(data):
 def hello_world():
     con = connect("cp2s_data.sqlite")
     cur = con.cursor()
-    content = [[datetime.fromtimestamp(x[0]/1000), x[1]] for x in cur.execute("SELECT * FROM data")]
+    content = list(cur.execute("SELECT * FROM data"))
     cur.close()
     con.close()
     da = [parse_temp_level_data(x[1]) for x in content if x[1].startswith("CURRENT LEVEL")]
