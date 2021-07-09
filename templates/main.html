@@ -8,38 +8,91 @@
             border: 1px solid black;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.4.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@1.27.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>
+
+
 </head>
 <body>
-<div>
+<div style="max-width: 70%; margin: auto">
+    <h2>Ln2 level and temperature</h2>
     <canvas id="myChart" width="50" height="10"></canvas></div>
-<table>
-    <tr>
-        <th>date</th>
-        <th>data</th>
-    </tr>
-    {% for item in log %}
-    <tr>
-        {% for si in item %}
-        <td> {{ si }}</td>
+<div style="max-width: 70%; margin: auto">
+    <h2>Raw log output</h2>
+    <table>
+        <tr>
+            <th>date</th>
+            <th>data</th>
+        </tr>
+        {% for item in log %}
+        <tr>
+            {% for si in item %}
+            <td> {{ si }}</td>
+            {% endfor %}
+        </tr>
         {% endfor %}
-    </tr>
-    {% endfor %}
 
-</table>
+    </table>
+</div>
 <script>
     const data = {
-        datasets: [{
-            label: 'My First dataset',
-            backgroundColor: 'rgb(255, 99, 132)',
-            borderColor: 'rgb(255, 99, 132)',
-            data: {{ ll|safe }},
-        }]
+        datasets: [
+            {
+                label: "LN2 level in cryoplus2",
+                backgroundColor: 'rgb(0, 255, 0)',
+                borderColor: 'rgb(50, 255, 50)',
+                data: {{ ll|safe }},
+                yAxisID: 'y1'
+            },
+            {
+                label: "Temperature",
+                backgroundColor: 'rgb(255, 0, 0)',
+                borderColor: 'rgb(255, 50, 50)',
+                data: {{ tt|safe }},
+                yAxisID: 'y2'
+            },
+        ]
     };
     const config = {
         type: 'line',
         data,
-        options: {}
+        options: {
+            scales: {
+                y1: {
+                    position: 'right',
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: 'rgb(0, 150,0)',
+                    }
+                },
+                y2: {
+                    ticks: {
+                        color: 'rgb(150, 0,0)',
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'time'
+                    },
+                    type: 'time',
+                    time: {
+                        unit: 'hour',
+                        displayFormats: {
+                            hour: 'T EEE d MMM'
+                        }
+                    },
+                    ticks: {
+                        major: {
+                            enabled: true
+                        }
+                    }
+                }
+            }
+        }
     };
     let myChart = new Chart('myChart', config);
 </script>
