@@ -1,7 +1,7 @@
 import pandas as pd
 from flask import Flask, request, render_template
 from sqlite3 import connect
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -19,7 +19,8 @@ def parse_temp_level_data(data):
 def hello_world():
     con = connect("cp2s_data.sqlite")
     cur = con.cursor()
-    content = list(cur.execute("SELECT * FROM data ORDER BY date DESC"))
+    # get data 30 days back
+    content = list(cur.execute("SELECT * FROM data WHERE date >= date(?) ORDER BY date DESC", (datetime.now()-timedelta(days=30), )))
     cur.close()
     con.close()
     df = pd.DataFrame([parse_temp_level_data(x[1]) for x in content if x[1].startswith("CURRENT LEVEL")])
