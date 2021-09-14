@@ -2,22 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Lasses super cool LN2 monitor</title>
     <style>
         table, th, td {
             border: 1px solid black;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.4.1"></script>
-    <script src="https://cdn.jsdelivr.net/npm/luxon@1.27.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.0.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.1.0"></script>
 
 </head>
 <body>
 <div style="max-width: 70%; margin: auto">
     <h2>Ln2 level and temperature</h2>
-    <canvas id="myChart" width="40" height="10"></canvas></div>
+    <canvas id="myChart" width="40" height="10"></canvas>
+</div>
 <div style="max-width: 70%; margin: auto">
     <h2>Raw log output</h2>
     <table>
@@ -88,6 +89,30 @@
                     ticks: {
                         major: {
                             enabled: true
+                        }
+                    }
+                }
+            },
+            plugins: {
+                autocolors: false,
+                annotation: {
+                    annotations: {
+                        temp_threshold: {
+                            type: 'line',
+                            yScaleID: 'y2',
+                            yMin: -120,
+                            yMax: -120,
+                            borderColor: 'rgb(255, 99, 132)',
+                            borderWidth: 2,
+                            borderDash: [10],
+                            label: {
+                                backgroundColor: 'rgba(200,0,0,1)',
+                                color: '#fff',
+                                position: 'start',
+                                yAdjust: -20,
+                                content: 'Temperature alarm threshold',
+                                enabled: true
+                              },
                         }
                     }
                 }

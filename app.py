@@ -27,7 +27,7 @@ def hello_world():
     df['time'] = df['time'].dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
     return render_template(
         'main.html',
-        log=content,
+        log=[x for x in content if "CURRENT LEVEL" not in x[1]],
         ll=df[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records'),
         tt=df[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records')
     )
