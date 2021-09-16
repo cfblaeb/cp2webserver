@@ -20,6 +20,20 @@
     <canvas id="myChart" width="40" height="10"></canvas>
 </div>
 <div style="max-width: 70%; margin: auto">
+    <h2>Lastest errors</h2>
+    <table>
+        <tr>
+            <th>date</th>
+            <th>data</th>
+        </tr>
+        {% for item in error_log %}
+        <tr>
+            {% for si in item %}
+            <td style="padding: 5px"> {{ si }}</td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
     <h2>Raw log output</h2>
     <table>
         <tr>

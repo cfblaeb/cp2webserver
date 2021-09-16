@@ -15,6 +15,14 @@ def parse_temp_level_data(data):
     return {'time': t, 'liquid_level': lv, 'temperature': tp}
 
 
+def filter_log_output(log, error=False):
+    if error:
+        return [x for x in log if "ERROR" in x[1] and ". . . ." not in x[1]]
+    else:
+        filter_list = ['COVER CLOSED', 'COVER OPENED', 'AUTO FILL', 'CURRENT LEVEL', 'MANUAL FILL STARTED', 'ERROR']
+        return [log_str for log_str in log if not any(sub in log_str[1] for sub in filter_list)]
+
+
 @app.route('/')
 def hello_world():
     con = connect("cp2s_data.sqlite")
@@ -27,7 +35,8 @@ def hello_world():
     df['time'] = df['time'].dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
     return render_template(
         'main.html',
-        log=[x for x in content if "CURRENT LEVEL" not in x[1]],
+        log=filter_log_output(content),
+        error_log=filter_log_output(content, True),
         ll=df[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records'),
         tt=df[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records')
     )
