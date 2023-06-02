@@ -1,15 +1,6 @@
-To deploy run gunicorn  
-``` bash
-gunicorn -b 127.0.0.1:8911 app:app
-```
-and setup forwarding in nginx (and possibly dns server)
-``` nginx
-server {
-    listen 80;
-    server_name ln2.dumdata.dk
-    
-    location / {
-        proxy_pass http://127.0.0.1:8911/;
-    }
-}
-```
+To deploy: 
+- move/copy/link conf/gunicorn.service and socket into /etc/systemd/system/
+- move/copy/link conf/ln2_nginx.conf into /etc/nginx/conf.d/
+- systemctl enable --now gunicorn.socket
+- restart nginx
+- test with sudo -u www-data curl --unix-socket /run/gunicorn.sock http
