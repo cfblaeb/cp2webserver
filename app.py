@@ -32,19 +32,22 @@ def hello_world():
     cur.close()
     con.close()
     df = pd.DataFrame([parse_temp_level_data(x[1]) for x in content if x[1].startswith("CURRENT LEVEL")])
-    df['time'] = df['time'].dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
-    return render_template(
-        'main.html',
-        log=filter_log_output(content),
-        error_log=filter_log_output(content, True),
-        ll=df[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records'),
-        tt=df[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records')
-    )
+    if len(df) != 0:
+        df['time'] = df['time'].dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
+        return render_template(
+            'main.html',
+            log=filter_log_output(content),
+            error_log=filter_log_output(content, True),
+            ll=df[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records'),
+            tt=df[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records')
+        )
+    else:
+        return "no data yet"
 
 
 @app.post('/new_data')
 def new_data():
-    # check that data is not null and that its a dictionary and that it has a key named data
+    # check that data is not null and that it's a dictionary and that it has a key named data
     if request.json and isinstance(request.json, dict) and 'data' in request.json:
         con = connect("cp2s_data.sqlite")
         cur = con.cursor()
