@@ -19,14 +19,14 @@
     <img src="cryoplus2.jpg" style="max-height: 320px; width: auto;">
     <div style="max-width: 70%; margin: auto">
         <h2>Ln2 level and temperature in CryoPlus2</h2>
-        <canvas id="myChart" width="40" height="10"></canvas>
+        <canvas id="cp2_Chart" width="40" height="10"></canvas>
     </div>
 </div>
 <div style="display: flex">
     <img src="v3000ab.jpg" style="max-height: 320px; width: auto;">
     <div style="max-width: 70%; margin: auto">
         <h2>Ln2 level and temperature in CBS3000-ab</h2>
-        <canvas id="myv3000chart" width="40" height="10"></canvas>
+        <canvas id="cbs_Chart" width="40" height="10"></canvas>
     </div>
 </div>
 
@@ -39,7 +39,7 @@
                     <th>date</th>
                     <th>data</th>
                 </tr>
-                {% for item in error_log %}
+                {% for item in cp2_error_log %}
                 <tr>
                     {% for si in item %}
                     <td style="padding: 5px"> {{ si }}</td>
@@ -53,7 +53,7 @@
                     <th>date</th>
                     <th>data</th>
                 </tr>
-                {% for item in log %}
+                {% for item in cp2_log %}
                 <tr>
                     {% for si in item %}
                     <td style="padding: 5px"> {{ si }}</td>
@@ -72,7 +72,7 @@
                     <th>date</th>
                     <th>data</th>
                 </tr>
-                {% for item in error_log %}
+                {% for item in cbs_error_log %}
                 <tr>
                     {% for si in item %}
                     <td style="padding: 5px"> {{ si }}</td>
@@ -86,40 +86,39 @@
                     <th>date</th>
                     <th>data</th>
                 </tr>
-                {% for item in log %}
+                {% for item in cbs_log %}
                 <tr>
                     {% for si in item %}
                     <td style="padding: 5px"> {{ si }}</td>
                     {% endfor %}
                 </tr>
                 {% endfor %}
-
             </table>
         </div>
     </div>
 </div>
 <script>
-    const data = {
+    const cp2_data = {
         datasets: [
             {
                 label: "LN2 level in cryoplus2",
                 backgroundColor: 'rgba(0, 255, 0, 0.75)',
                 borderColor: 'rgba(50, 255, 50, 0.25)',
-                data: {{ ll|safe }},
+                data: {{ cp2_ll|safe }},
                 yAxisID: 'y1'
             },
             {
                 label: "Temperature",
                 backgroundColor: 'rgba(255, 0, 0, 0.75)',
                 borderColor: 'rgba(255, 50, 50, 0.25)',
-                data: {{ tt|safe }},
+                data: {{ cp2_tt|safe }},
                 yAxisID: 'y2'
             },
         ]
     };
-    const config = {
+    const cp2_config = {
         type: 'line',
-        data,
+        cp2_data,
         options: {
             scales: {
                 y1: {
@@ -181,31 +180,31 @@
             }
         }
     };
-    let myChart = new Chart('myChart', config);
+    let cp2_Chart = new Chart('cp2_Chart', cp2_config);
 
-    // copy for v3000
+    // copy for cbs v3000
 
-    const data3000 = {
+    const cbs_data = {
         datasets: [
             {
                 label: "LN2 level in cbs v3000",
                 backgroundColor: 'rgba(0, 255, 0, 0.75)',
                 borderColor: 'rgba(50, 255, 50, 0.25)',
-                data: {{ ll|safe }},
+                data: {{ cbs_ll|safe }},
                 yAxisID: 'y1'
             },
             {
                 label: "Temperature",
                 backgroundColor: 'rgba(255, 0, 0, 0.75)',
                 borderColor: 'rgba(255, 50, 50, 0.25)',
-                data: {{ tt|safe }},
+                data: {{ cbs_tt|safe }},
                 yAxisID: 'y2'
             },
         ]
     };
-    const config3000 = {
+    const cbs_config = {
         type: 'line',
-        data3000,
+        cbs_data,
         options: {
             scales: {
                 y1: {
@@ -267,7 +266,7 @@
             }
         }
     };
-    let myChart3000 = new Chart('myv3000chart', config3000);
+    let cbs_Chart = new Chart('cbs_Chart', cbs_config);
 </script>
 </body>
 </html>
