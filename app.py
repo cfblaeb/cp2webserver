@@ -22,12 +22,12 @@ def parse_temp_level_data(data: str, freezer: int):
 def filter_log_output(log, freezer: int, error=False):
     if freezer == 0:  # cp2
         if error:
-            return [x for x in log if "ERROR" in x[1] and ". . . ." not in x[1]]
+            return [(x[0], x[1]) for x in log if "ERROR" in x[1] and ". . . ." not in x[1]]
         else:
             filter_list = ['COVER CLOSED', 'COVER OPENED', 'AUTO FILL', 'CURRENT LEVEL', 'MANUAL FILL STARTED', 'ERROR']
-            return [log_str for log_str in log if not any(sub in log_str[1] for sub in filter_list)]
+            return [(log_str[0], log_str[1]) for log_str in log if not any(sub in log_str[1] for sub in filter_list)]
     elif freezer == 1:  # cbs
-        return ["no", "errors"]
+        return [("no", "errors")]
 
 
 @app.route('/')

@@ -8,25 +8,27 @@
             border: 1px solid black;
         }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/luxon@2.0.2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.1.0"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@^4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@^2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@^1"></script>
 </head>
 <body>
 <div style="display: flex">
-    <img src="cryoplus2.jpg" style="max-height: 320px; width: auto;">
-    <div style="max-width: 70%; margin: auto">
+    <img src="static/cryoplus2.jpg" style="max-height: 320px; width: auto;">
+    <div style="width: 70%; margin: auto">
         <h2>Ln2 level and temperature in CryoPlus2</h2>
-        <canvas id="cp2_Chart" width="40" height="10"></canvas>
+        <div class="chart-container" style="position: relative; height:30vh; width:70vw;">
+            <canvas id="cp2_Chart" width="40" height="10"></canvas>
+        </div>
     </div>
 </div>
 <div style="display: flex">
-    <img src="v3000ab.jpg" style="max-height: 320px; width: auto;">
+    <img src="static/v3000ab.jpg" style="max-height: 320px; width: auto;">
     <div style="max-width: 70%; margin: auto">
         <h2>Ln2 level and temperature in CBS3000-ab</h2>
-        <canvas id="cbs_Chart" width="40" height="10"></canvas>
+        <div class="chart-container" style="position: relative; height:30vh; width:70vw">
+            <canvas id="cbs_Chart" width="40" height="10"></canvas>
+        </div>
     </div>
 </div>
 
@@ -118,8 +120,9 @@
     };
     const cp2_config = {
         type: 'line',
-        cp2_data,
+        data: cp2_data,
         options: {
+            responsive: true,
             scales: {
                 y1: {
                     position: 'right',
@@ -180,9 +183,10 @@
             }
         }
     };
-    let cp2_Chart = new Chart('cp2_Chart', cp2_config);
 
-    // copy for cbs v3000
+    new Chart('cp2_Chart', cp2_config)
+
+       // copy for cbs v3000
 
     const cbs_data = {
         datasets: [
@@ -204,8 +208,9 @@
     };
     const cbs_config = {
         type: 'line',
-        cbs_data,
+        data: cbs_data,
         options: {
+            responsive: true,
             scales: {
                 y1: {
                     position: 'right',
@@ -266,7 +271,8 @@
             }
         }
     };
-    let cbs_Chart = new Chart('cbs_Chart', cbs_config);
+
+    new Chart('cbs_Chart', cbs_config);
 </script>
 </body>
 </html>
