@@ -41,7 +41,8 @@ def hello_world():
     con.close()
 
     cp2_df = pd.DataFrame([parse_temp_level_data(x[1], 0) for x in content if x[1].startswith("CURRENT LEVEL") and x[2]==0])
-    cp2_df['time'] = cp2_df['time'].dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
+    if len(cp2_df):
+        cp2_df['time'] = cp2_df['time'].dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
 
     cbs_df = pd.DataFrame([parse_temp_level_data(x[1], 1) for x in content if x[1].startswith("CURRENT LEVEL") and x[2]==1])
     if len(cbs_df):
@@ -51,13 +52,13 @@ def hello_world():
         'main.html',
         cp2_log=filter_log_output(content, 0),
         cp2_error_log=filter_log_output(content, 0, True),
-        cp2_ll=cp2_df[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records'),
-        cp2_tt=cp2_df[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records'),
+        cp2_ll=cp2_df[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records') if len(cp2_df) else [],
+        cp2_tt=cp2_df[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records') if len(cp2_df) else [],
 
         cbs_log=filter_log_output(content, 1),
         cbs_error_log=filter_log_output(content, 1, True),
-        cbs_ll=cbs_df[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records') if len(cbs_df) else None,
-        cbs_tt=cbs_df[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records') if len(cbs_df) else None
+        cbs_ll=cbs_df[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records') if len(cbs_df) else [],
+        cbs_tt=cbs_df[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records') if len(cbs_df) else []
     )
 
 
