@@ -3,8 +3,9 @@ from flask import Flask, request, render_template
 from sqlite3 import connect
 from datetime import datetime, timedelta
 
+from config import db_name
+
 app = Flask(__name__)
-freezers = {'cp2': 0, 'cbs': 1}
 
 
 def parse_temp_level_data(data: str, freezer: int):
@@ -32,7 +33,7 @@ def filter_log_output(log, freezer: int, error=False):
 
 @app.route('/')
 def hello_world():
-    con = connect("cp2s_data.sqlite")
+    con = connect(db_name)
     cur = con.cursor()
     # get data 30 days back
     content = list(cur.execute("SELECT * FROM data WHERE date >= date(?) ORDER BY date DESC", (datetime.now()-timedelta(days=30), )))
@@ -64,7 +65,7 @@ def hello_world():
 def new_data():
     # check that data is not null and that it's a dictionary and that it has a key named data
     if request.json and isinstance(request.json, dict) and 'data' in request.json:
-        con = connect("cp2s_data.sqlite")
+        con = connect(db_name)
         cur = con.cursor()
         cur.execute("INSERT INTO data VALUES (?, ?, ?)", (datetime.now(), request.json['data'], request.json['freezer']))
         con.commit()
