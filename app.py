@@ -4,31 +4,10 @@ from sqlite3 import connect
 from datetime import datetime, timedelta
 
 from config import db_name
+from cp2 import parse_cp2_messages, parse_cp2_data
+from cbs import parse_cbs
 
 app = Flask(__name__)
-
-
-def parse_temp_level_data(data: str, freezer: int):
-    if freezer == 0:  # cp2
-        # "CURRENT LEVEL=005.00, TEMP=-00141., (1) @ =00048. . . .02:22PM JUL 08, 2021"
-        data_s = data.split("=")
-        t = datetime.strptime(data.split(".")[-1], "%I:%M%p %b %d, %Y")
-        lv = float(data_s[1].split(",")[0])
-        tp = float(data_s[2].split(",")[0])
-        return {'time': t, 'liquid_level': lv, 'temperature': tp}
-    elif freezer == 1:  # cbs
-        return {'time': datetime.strptime("02:22PM JUL 08, 2021", "%I:%M%p %b %d, %Y"), 'liquid_level': 0, 'temperature': 0}
-
-
-def filter_log_output(log, freezer: int, error=False):
-    if freezer == 0:  # cp2
-        if error:
-            return [(x[0], x[1]) for x in log if "ERROR" in x[1] and ". . . ." not in x[1]]
-        else:
-            filter_list = ['COVER CLOSED', 'COVER OPENED', 'AUTO FILL', 'CURRENT LEVEL', 'MANUAL FILL STARTED', 'ERROR']
-            return [(log_str[0], log_str[1]) for log_str in log if not any(sub in log_str[1] for sub in filter_list)]
-    elif freezer == 1:  # cbs
-        return [("no", "errors")]
 
 
 @app.route('/')
@@ -40,25 +19,23 @@ def hello_world():
     cur.close()
     con.close()
 
-    cp2_df = pd.DataFrame([parse_temp_level_data(x[1], 0) for x in content if x[1].startswith("CURRENT LEVEL") and x[2]==0])
+    cp2_df = pd.DataFrame([parse_cp2_data(x[1]) for x in content if x[1].startswith("CURRENT LEVEL") and x[2] == 0])
     if len(cp2_df):
         cp2_df['time'] = cp2_df['time'].dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
 
-    cbs_df = pd.DataFrame([parse_temp_level_data(x[1], 1) for x in content if x[1].startswith("CURRENT LEVEL") and x[2]==1])
-    if len(cbs_df):
-        cbs_df['time'] = cbs_df['time'].dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
+    cbs_data, cbs_error_log, cbs_rest = parse_cbs([x for x in content if x[2] == 1])
 
     return render_template(
         'main.html',
-        cp2_log=filter_log_output(content, 0),
-        cp2_error_log=filter_log_output(content, 0, True),
+        cp2_log=parse_cp2_messages(content, 0),
+        cp2_error_log=parse_cp2_messages(content, 0, True),
         cp2_ll=cp2_df[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records') if len(cp2_df) else [],
         cp2_tt=cp2_df[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records') if len(cp2_df) else [],
 
-        cbs_log=filter_log_output(content, 1),
-        cbs_error_log=filter_log_output(content, 1, True),
-        cbs_ll=cbs_df[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records') if len(cbs_df) else [],
-        cbs_tt=cbs_df[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records') if len(cbs_df) else []
+        cbs_log=cbs_rest,
+        cbs_error_log=cbs_error_log,
+        cbs_ll=cbs_data[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records') if len(cbs_data) else [],
+        cbs_tt=cbs_data[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records') if len(cbs_data) else []
     )
 
 
