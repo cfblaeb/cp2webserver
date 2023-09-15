@@ -1,11 +1,9 @@
-import pandas as pd
 from flask import Flask, request, render_template
 from sqlite3 import connect
 from datetime import datetime, timedelta
-
+from pandas import DataFrame, to_datetime
 from config import db_name
-from cp2 import parse_cp2_messages, parse_cp2_data
-from cbs import parse_cbs
+from parsers import parse_cp2, parse_cbs
 
 app = Flask(__name__)
 
@@ -15,22 +13,21 @@ def hello_world():
     con = connect(db_name)
     cur = con.cursor()
     # get data 30 days back
-    content = list(cur.execute("SELECT * FROM data WHERE date >= date(?) ORDER BY date DESC", (datetime.now()-timedelta(days=30), )))
+    content = DataFrame(cur.execute("SELECT * FROM data WHERE date >= date(?) ORDER BY date DESC", (datetime.now()-timedelta(days=30), )), columns=['date', 'data', 'freezer'])
     cur.close()
     con.close()
+    content['date'] = to_datetime(content['date']).dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
+    content = content.sort_values('date')
 
-    cp2_df = pd.DataFrame([parse_cp2_data(x[1]) for x in content if x[1].startswith("CURRENT LEVEL") and x[2] == 0])
-    if len(cp2_df):
-        cp2_df['time'] = cp2_df['time'].dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
-
-    cbs_data, cbs_error_log, cbs_rest = parse_cbs([x for x in content if x[2] == 1])
+    cp2_data, cp2_error_log, cp2_rest = parse_cp2(content[content.freezer == 0])
+    cbs_data, cbs_error_log, cbs_rest = parse_cbs(content[content.freezer == 1])
 
     return render_template(
         'main.html',
-        cp2_log=parse_cp2_messages(content, 0),
-        cp2_error_log=parse_cp2_messages(content, 0, True),
-        cp2_ll=cp2_df[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records') if len(cp2_df) else [],
-        cp2_tt=cp2_df[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records') if len(cp2_df) else [],
+        cp2_log=cp2_rest,
+        cp2_error_log=cp2_error_log,
+        cp2_ll=cp2_data[['time', 'liquid_level']].rename(columns={'time': 'x', 'liquid_level': 'y'}).to_json(orient='records') if len(cp2_data) else [],
+        cp2_tt=cp2_data[['time', 'temperature']].rename(columns={'time': 'x', 'temperature': 'y'}).to_json(orient='records') if len(cp2_data) else [],
 
         cbs_log=cbs_rest,
         cbs_error_log=cbs_error_log,
