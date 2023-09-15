@@ -59,6 +59,6 @@ def parse_cbs(data: DataFrame):
 	# error example
 	# LOW ALARM 20 April 2023 13:25
 	maybe_errors = DataFrame(data[(~data.index.isin(used_ids)) & (data.str.contains("ALARM"))])
-	cbs_error_log = maybe_errors.apply(lambda x: Series([x.data.split("ALARM")[-1].strip(), x.data.split("ALARM")[-1].strip() + " ALARM"]), axis=1).values.tolist()
+	cbs_error_log = maybe_errors.apply(lambda x: Series([x.data.split("ALARM")[-1].strip(), x.data.split("ALARM")[0].strip() + " ALARM"]), axis=1).values.tolist()
 
 	return cbs_df, cbs_error_log, []
