@@ -19,7 +19,7 @@ def parse_cp2(data: DataFrame):
 	# Line 1: "ERROR # (11) @ =00417. . . . . . . . . . . . . . . . . 09:19PM SEP 14, 2023"
 	# Line 2: "FILL ERROR - LIQUID TEMPERATURE IS ABOVE SET LIMIT."
 	error_data = data[data.data.str.contains("ERROR")]
-	cp2_error_log = error_data.groupby(error_data.index // 2).apply(lambda x: Series([x.iloc[0].data.split(".")[-1].strip(), x.iloc[1].data])).values.tolist()
+	cp2_error_log = error_data.groupby(error_data.reset_index(drop=True).index // 2).apply(lambda x: Series([x.iloc[0].data.split(".")[-1].strip(), x.iloc[1].data])).values.tolist()
 
 	# get remaining log data
 	rest_data = data[(~data.data.str.startswith("CURRENT LEVEL")) & (~data.data.str.contains("ERROR")) & (data.data.str.contains("@"))]
