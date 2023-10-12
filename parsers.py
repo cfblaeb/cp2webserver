@@ -41,12 +41,16 @@ def parse_cbs(data: DataFrame):
 
 	cbs_data = []
 	for i in llids:
-		used_ids += [i - 3, i - 2, i - 1]
-		date = datetime.strptime(data.loc[i - 3].split("\t")[0], "%d %B %Y %H:%M")
-		temp = int(data.loc[i - 2].split(" ")[1])
-		other_temp = data.loc[i - 1]  # cbs captures bottom and top temp...I'm don't care
-		ll = float(data.loc[i].split(" ")[2])
-		cbs_data.append({'time': date, 'temperature': temp, 'liquid_level': ll})
+		try:
+			used_ids += [i - 3, i - 2, i - 1]
+			date = datetime.strptime(data.loc[i - 3].split("\t")[0], "%d %B %Y %H:%M")
+			temp = int(data.loc[i - 2].split(" ")[1])
+			other_temp = data.loc[i - 1]  # cbs captures bottom and top temp...I'm don't care
+			ll = float(data.loc[i].split(" ")[2])
+			cbs_data.append({'time': date, 'temperature': temp, 'liquid_level': ll})
+		except ValueError as e:
+			pass
+
 	cbs_df = DataFrame(cbs_data)
 	cbs_df['time'] = cbs_df['time'].dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
 
