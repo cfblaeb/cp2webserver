@@ -20,9 +20,10 @@ def parse_cp2(data: DataFrame):
 	# Line 2: "FILL ERROR - LIQUID TEMPERATURE IS ABOVE SET LIMIT."
 	error_data = data[data.data.str.contains("ERROR")]
 	cp2_error_log = error_data.groupby(error_data.reset_index(drop=True).index // 2).apply(lambda x: Series([x.iloc[0].data.split(".")[-1].strip(), x.iloc[1].data])).values.tolist()
+	cp2_error_log.reverse()
 
 	# get remaining log data
-	rest_data = data[(~data.data.str.startswith("CURRENT LEVEL")) & (~data.data.str.contains("ERROR")) & (data.data.str.contains("@"))]
+	rest_data = data[(~data.data.str.startswith("CURRENT LEVEL")) & (~data.data.str.contains("ERROR")) & (data.data.str.contains("@"))].sort_values(by='date', ascending=False)
 	cp2_rest = rest_data.apply(lambda x: Series([x.data.split(".")[-1], x.data.split(".")[0]]), axis=1).values.tolist()
 
 	return cp2_df, cp2_error_log, cp2_rest
@@ -37,15 +38,13 @@ def parse_cbs(data: DataFrame):
 	# I will identify the Liquid Level Line and then assume the previous 3 lines belong to that block.
 	data = data.reset_index(drop=True).data
 	llids = data[data.str.contains('Liquid Level:')].index
-	used_ids = list(llids)
 
 	cbs_data = []
 	for i in llids:
 		try:
-			used_ids += [i - 3, i - 2, i - 1]
 			date = datetime.strptime(data.loc[i - 3].split("\t")[0], "%d %B %Y %H:%M")
 			temp = int(data.loc[i - 2].split(" ")[1])
-			other_temp = data.loc[i - 1]  # cbs captures bottom and top temp...I'm don't care
+			other_temp = data.loc[i - 1]  # cbs captures bottom and top temp...I don't care
 			ll = float(data.loc[i].split(" ")[2])
 			cbs_data.append({'time': date, 'temperature': temp, 'liquid_level': ll})
 		except ValueError as e:
@@ -54,15 +53,27 @@ def parse_cbs(data: DataFrame):
 	cbs_df = DataFrame(cbs_data)
 	cbs_df['time'] = cbs_df['time'].dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
 
-	# localize "CURRENT STATUS" blocks and delete them (should try to get the freezer to not make them)
-	# they start 2 lines before "CURRENT STATUS" and they end at "COMMENTS"
-	cs_start_ids = [x - 2 for x in data[data.str.contains('CURRENT STATUS')].index]
-	cs_end_ids = list(data[data.str.contains('COMMENTS')].index)
-	used_ids += [item for sublist in [list(range(ai, bi + 1)) for ai, bi in zip(cs_start_ids, cs_end_ids)] for item in sublist]
+	# find the latest "report" and use that for all errors
+	# REPORT DONE BY ________________________________________
+	# blank line
+	# blank line
+	# blank line
+	# line-n
+	# line-2
+	# line-1
+	# blank line
+	# -----
+	# HISTORY
+	his_ind = data[data == 'HISTORY'].index[-1]
+	rdb_ind = data[data.str.startswith("REPORT DONE BY")].index[-1]
+	log_data = data.loc[his_ind+3:rdb_ind-4]
+	massaged_log_data = log_data.apply(lambda x: Series([" ".join(x.split(" ")[-4:]), " ".join(x.split(" ")[:-4])])).values.tolist()
 
-	# error example
-	# LOW ALARM 20 April 2023 13:25
-	maybe_errors = DataFrame(data[(~data.index.isin(used_ids)) & (data.str.contains("ALARM"))])
-	cbs_error_log = maybe_errors.apply(lambda x: Series([x.data.split("ALARM")[-1].strip(), x.data.split("ALARM")[0].strip() + " ALARM"]), axis=1).values.tolist()
+	# examples of alarms:
+	# TEMP-A. HIGH 27 June 2023 12:43
+	# LOW ALARM 10 September 2023 21:56
+	# SYSTEM POWER OFF 05 September 2023 11:15
+	alarm_data = log_data[log_data.str.contains("ALARM") | log_data.str.contains("POWER") | log_data.str.contains("HIGH")]
+	massaged_alarm_data = alarm_data.apply(lambda x: Series([" ".join(x.split(" ")[-4:]), " ".join(x.split(" ")[:-4])])).values.tolist()
 
-	return cbs_df, cbs_error_log, []
+	return cbs_df, massaged_alarm_data, massaged_log_data
