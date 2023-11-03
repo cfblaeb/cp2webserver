@@ -13,7 +13,7 @@ def parse_cp2_data(data: Series):
 
 def parse_cp2(data: DataFrame):
 	cp2_df = data[data.data.str.startswith("CURRENT LEVEL")].apply(parse_cp2_data, axis=1)
-	cp2_df['time'] = cp2_df['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='infer')  # localize to Denmark
+	cp2_df['time'] = cp2_df['time'].dt.tz_localize('Europe/Copenhagen', ambiguous=True)  # localize to Denmark
 
 	# errors have two lines.
 	# Line 1: "ERROR # (11) @ =00417. . . . . . . . . . . . . . . . . 09:19PM SEP 14, 2023"
@@ -51,7 +51,7 @@ def parse_cbs(data: DataFrame):
 			pass
 
 	cbs_df = DataFrame(cbs_data)
-	cbs_df['time'] = cbs_df['time'].dt.tz_localize('Europe/Copenhagen', ambiguous='infer')  # localize to Denmark
+	cbs_df['time'] = cbs_df['time'].dt.tz_localize('Europe/Copenhagen', ambiguous=True)  # localize to Denmark
 
 	# find the latest "report" and use that for all errors
 	# REPORT DONE BY ________________________________________
