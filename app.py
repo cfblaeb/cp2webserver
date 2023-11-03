@@ -16,7 +16,7 @@ def hello_world():
     content = DataFrame(cur.execute("SELECT * FROM data WHERE date >= date(?) ORDER BY date DESC", (datetime.now()-timedelta(days=30), )), columns=['date', 'data', 'freezer'])
     cur.close()
     con.close()
-    content['date'] = to_datetime(content['date']).dt.tz_localize('Europe/Copenhagen')  # localize to Denmark
+    content['date'] = to_datetime(content['date']).dt.tz_localize('Europe/Copenhagen', ambiguous='infer')  # localize to Denmark
     content = content.sort_values('date')
 
     cp2_data, cp2_error_log, cp2_rest = parse_cp2(content[content.freezer == 0])
